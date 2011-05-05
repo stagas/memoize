@@ -1,0 +1,21 @@
+{
+  "name": "memoize",
+  "description": "memoize caches your callbacks given a set of arguments",
+  "keywords": [
+    "memoize",
+    "cache"
+   ],
+  "version": "0.0.1",
+  "author": "George Stagas <gstagas@gmail.com>",
+  "engines": {
+    "node": "*"
+  },
+  "main": "./memoize",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stagas/memoize"
+  },
+  "bugs": {
+    "web": "https://github.com/stagas/memoize/issues"
+  }
+}
