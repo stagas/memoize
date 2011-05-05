@@ -15,6 +15,8 @@ var options = {
 , debug   : false
 }
 
+var toSource = require('tosource')
+
 // memoize
 module.exports = exports = function() {
   var cache = {}
@@ -52,7 +54,7 @@ module.exports = exports = function() {
         , cb = args.pop()
         
       // hash method name and arguments
-      var hash = (method ? method + '%' : '') + args
+      var hash = (method ? method + '%' : '') + toSource(args)
 
       // callback cache if we have it
       if ('undefined' !== typeof cache[hash]) {

@@ -58,6 +58,18 @@ obj.date(1, function(err, d1) {
   }, 1200)
 })
 
+obj.date({ foo: 1, fn: function() { return 1 } }, function(err, d1) {
+  obj.date({ foo: 1, fn: function() { return 1 } }, function(err, d2) {
+    d1.should.equal(d2)
+    obj.date({ foo: 2, fn: function() { return 1 } }, function(err, d3) {
+      d1.should.not.equal(d3)
+      obj.date({ foo: 1, fn: function() { return 2 } }, function(err, d4) {
+        d1.should.not.equal(d4)
+      })
+    })
+  })
+})
+
 someClass.should.have.property('date')
 someClass.should.have.property('protoDate')
 someClass.date(1, function(err, d1) {

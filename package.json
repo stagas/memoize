@@ -5,10 +5,13 @@
     "memoize",
     "cache"
    ],
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "George Stagas <gstagas@gmail.com>",
   "engines": {
     "node": "*"
+  },
+  "dependencies": {
+    "tosource": ">=0.1.1"
   },
   "main": "./memoize",
   "repository": {
