@@ -15,7 +15,7 @@ Arguments after the 1st one can be passed in any order.
 
 Available options:
 
-    expire  : 30000   // Expire time in ms
+    expire  : 30000   // Expire time in ms (false to never expire)
     exclude : []      // Array of methods to exclude from memoizing
     only    : []      // Array of methods to memoize only
     error   : true    // If false, ignore errors and memoize anyway. Useful if your function doesn't callback an error
@@ -52,10 +52,10 @@ also entire objects:
     var memoize = require('memoize')
       , redis = memoize(require('redis').createClient(), { exclude: [ 'set' ] })
 
-    redis.set('foo', 'bar', function(err, res) {
+    redis.set('foo', 'bar', function(err) {
       redis.get('foo', function(err, res) {
         console.log(res) // 'bar'
-        redis.set('foo', 'zoo', function(err, res) {
+        redis.set('foo', 'zoo', function(err) {
           redis.get('foo', function(err, res) {
             console.log(res) // still 'bar', hasn't expired yet!
           })

@@ -68,7 +68,7 @@ module.exports = exports = function() {
           debug && console.log('caching', hash)
           cache[hash] = {
             args: [].slice.call(arguments)
-          , timeout: setTimeout(function() {
+          , timeout: opts.expire && setTimeout(function() {
               debug && console.log('expired', hash)
               delete cache[hash]
             }, opts.expire)
