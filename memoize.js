@@ -58,7 +58,7 @@ module.exports = exports = function memoize () {
         , cb = args.pop()
 
       // memoize id, hash method name and arguments
-      var hash = id + '.' + (method ? method + '=' : '') + toSource(args)
+      var hash = id + ('undefined' === typeof method ? '' : '.' + method) + '=' + toSource(args)
 
       // callback cache if we have it
       store.get(hash, function (err, cached) {
