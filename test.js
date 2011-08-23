@@ -93,3 +93,17 @@ someClass.protoDate(1, function(err, d1) {
     })
   })
 })
+
+var noExpireDate = memoize(function(cb) {
+  setTimeout(function() {
+    cb(Date.now())
+  }, 100)
+}, { expire: false, error: false })
+
+noExpireDate(function (d1) {
+  setTimeout(function () {
+    noExpireDate(function (d2) {
+      d1.should.equal(d2)
+    })
+  }, 3000)
+})

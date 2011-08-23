@@ -63,7 +63,7 @@ module.exports = exports = function memoize () {
       // callback cache if we have it
       store.get(hash, function (err, cached) {
         debug && console.log('in cache', hash)
-        if (!err && cached && cached.expires >= Date.now()) return cb.apply(self, cached.args)
+        if (!err && cached && (!cached.expires || cached.expires >= Date.now())) return cb.apply(self, cached.args)
         args.push(function (err) {
           var self = this
             , cbargs = [].slice.call(arguments)
@@ -74,7 +74,9 @@ module.exports = exports = function memoize () {
             debug && console.log('caching', hash)
             store.set(hash, {
               args: cbargs
-            , expires: Date.now() + opts.expire
+            , expires: 'number' === typeof opts.expire
+              ? Date.now() + opts.expire
+              : false
             }, function (err) {
               if (err) throw err
               debug && console.log('cached', hash)
