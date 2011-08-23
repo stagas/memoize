@@ -1,11 +1,11 @@
 {
   "name": "memoize",
-  "description": "memoize caches your callbacks given a set of arguments",
+  "description": "memoize caches your callbacks given a set of arguments w/ persistence",
   "keywords": [
     "memoize",
     "cache"
    ],
-  "version": "0.0.3",
+  "version": "0.1.0",
   "author": "George Stagas <gstagas@gmail.com>",
   "engines": {
     "node": "*"

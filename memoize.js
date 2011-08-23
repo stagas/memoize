@@ -13,14 +13,13 @@ var options = {
 , only    : []
 , error   : true
 , debug   : false
+, store   : null
 }
 
 var toSource = require('tosource')
 
 // memoize
-module.exports = exports = function() {
-  var cache = {}
-
+module.exports = exports = function memoize () {
   // copy global options
   var opts = {}
   for (var k in options) {
@@ -38,9 +37,13 @@ module.exports = exports = function() {
       opts.target = arg
     } else if ('number' === typeof arg) {
       opts.expire = arg
+    } else if ('string' === typeof arg) {
+      opts.id = arg
     }
 
-  var target = opts.target
+  var id = opts.id || Math.floor(Math.random() * 100000000).toString(36)
+    , store = opts.store || new MemoryStore(opts.debug)
+    , target = opts.target
     , debug = opts.debug
 
   debug && console.log(opts)
@@ -48,41 +51,43 @@ module.exports = exports = function() {
   if (!target)
     throw new Error('No target object specified')
 
-  function wrapper(method) {
-    return function() {
-      var args = [].slice.call(arguments)
+  function wrapper (method) {
+    return function () {
+      var self = this
+        , args = [].slice.call(arguments)
         , cb = args.pop()
-        
-      // hash method name and arguments
-      var hash = (method ? method + '%' : '') + toSource(args)
+
+      // memoize id, hash method name and arguments
+      var hash = id + '.' + (method ? method + '=' : '') + toSource(args)
 
       // callback cache if we have it
-      if ('undefined' !== typeof cache[hash]) {
+      store.get(hash, function (err, cached) {
         debug && console.log('in cache', hash)
-        return cb.apply(this, cache[hash].args)
-      }
+        if (!err && cached && cached.expires >= Date.now()) return cb.apply(self, cached.args)
+        args.push(function (err) {
+          var self = this
+            , cbargs = [].slice.call(arguments)
 
-      // or save it by wrapping the callback
-      args.push(function(err) {
-        // no caching if there's an error
-        // unless error = false is used
-        if (!opts.error || !err) {
-          debug && console.log('caching', hash)
-          cache[hash] = {
-            args: [].slice.call(arguments)
-          , timeout: opts.expire && setTimeout(function() {
-              debug && console.log('expired', hash)
-              delete cache[hash]
-            }, opts.expire)
-          }
-        }
-        cb.apply(this, arguments)
+          // no caching if there's an error
+          // unless error = false is used
+          if (!opts.error || !err) {
+            debug && console.log('caching', hash)
+            store.set(hash, {
+              args: cbargs
+            , expires: Date.now() + opts.expire
+            }, function (err) {
+              if (err) throw err
+              debug && console.log('cached', hash)
+              cb.apply(self, cbargs)
+            })
+          } else cb.apply(self, cbargs)
+        })
+
+        // is it an object method or a function
+        method
+          ? target[method].apply(target, args)
+          : target.apply(target, args)        
       })
-
-      // is it an object method or a function
-      method
-        ? target[method].apply(target, args)
-        : target.apply(target, args)
     }
   }
 
@@ -96,7 +101,7 @@ module.exports = exports = function() {
     memoized = {}
     Object.keys(target) // instance methods
       .concat(Object.keys(target.__proto__)) // prototype methods
-      .forEach(function(method) {
+      .forEach(function (method) {
       if ('function' !== typeof target[method]) return
       if (!opts.only.length && !opts.exclude.length
         || opts.only.length && ~opts.only.indexOf(method)
@@ -109,23 +114,20 @@ module.exports = exports = function() {
   }
 
   // private clear cache method
-  memoized.__clearMemoizeCache__ = function() {
-    for (var k in cache) {
-      clearTimeout(cache[k].timeout)
-    }
-    cache = {}
+  memoized.__clearMemoizeCache__ = function (cb) {
+    store.clear(cb)
   }
  
   return memoized
 }
 
 // clear cache of a memoized object
-exports.clear = function(memoized) {
-  memoized.__clearMemoizeCache__()
+exports.clear = function (memoized, cb) {
+  memoized.__clearMemoizeCache__(cb)
 }
 
 // set an option value
-exports.set = function(k, v) {
+exports.set = function (k, v) {
   if ('object' === typeof k) {
     for (var key in k)
       options[key] = k[key]
@@ -133,6 +135,25 @@ exports.set = function(k, v) {
 }
 
 // get an option value
-exports.get = function(k) {
+exports.get = function (k) {
   return options[k]
+}
+
+// MemoryStore
+function MemoryStore () {
+  this.data = {}
+}
+
+MemoryStore.prototype.get = function (key, cb) {
+  cb(null, this.data[key])
+}
+
+MemoryStore.prototype.set = function (key, val, cb) {
+  this.data[key] = val
+  cb(null)
+}
+
+MemoryStore.prototype.clear = function (cb) {
+  this.data = {}
+  cb(null)
 }

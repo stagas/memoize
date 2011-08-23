@@ -1,7 +1,13 @@
-var memoize = require('memoize')
+var memoize = require('./memoize')
+  //, Store = require('ministore')('mdb')
+  //, cache = Store('cache')
+
+//cache.clear()
+
+//memoize.set('store', cache)
 memoize.set('debug', true)
 
-var redis = memoize(require('redis').createClient(), { exclude: [ 'set' ] })
+var redis = memoize('myredis', require('redis').createClient(), { exclude: [ 'set' ] })
 
 redis.set('foo', 'bar', function(err, res) {
   redis.get('foo', function(err, res) {
